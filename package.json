@@ -1,17 +1,27 @@
 {
-  "name": "loin",
+  "name": "korefugees",
   "version": "1.0.0",
-  "description": "",
+  "description": "google solution challenge_korefugees",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "ChoiHyoJeong",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.0",
     "express": "^4.18.2",
-    "mysql": "^2.18.1"
-  }
+    "mysql": "^2.18.1",
+    "socket.io": "^4.6.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyojeongchoi/KORefugees_BE.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hyojeongchoi/KORefugees_BE/issues"
+  },
+  "homepage": "https://github.com/hyojeongchoi/KORefugees_BE#readme"
 }
