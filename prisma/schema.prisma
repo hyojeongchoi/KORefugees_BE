@@ -1,0 +1,36 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Type {
+  refugee
+  expert
+}
+
+enum KoreanLevel {
+  Advanced
+  Intermediate
+  Bigin
+}
+model Users {
+  userId            Int    @id @default(autoincrement())
+  email             String    @unique @db.VarChar(50)
+  password          String    @db.VarChar(50)
+  name              String    @db.VarChar(50)
+  age               Int?  
+  gender            String    @db.VarChar(10)
+  type              Type
+  status            String?   @db.VarChar(10)
+  nation            String?   @db.VarChar(20)
+  koreanLevel       KoreanLevel?
+  profileImagePath  String?   @db.VarChar(200)
+  talent            String?   @db.VarChar(50)
+}
