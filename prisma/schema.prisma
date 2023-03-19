@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum wordType {
+  Daily
+  Medical
+  Law
+}
+
+enum wordLevel {
+  Advanced
+  Biginner
+}
+
+model Users {
+  userId           Int       @id @default(autoincrement())
+  email            String    @unique @db.VarChar(50)
+  password         String    @db.VarChar(200)
+  name             String    @db.VarChar(50)
+  birth            String    @db.VarChar(50)
+  gender           String    @db.VarChar(10)
+  status           String?   @db.VarChar(10)
+  nation           String?   @db.VarChar(20)
+  Language         String?   @db.VarChar(20)
+  profileImagePath String?   @db.VarChar(200)
+}
+
+model Words {
+  wordId    Int        @id @default(autoincrement())
+  words     String     @db.VarChar(50)
+  wordType  wordType?
+  wordLevel wordLevel?
+  wordDate  Int?
+}
+
+model MyWords {
+  mWordId   Int     @id @default(autoincrement())
+  email     String? @db.VarChar(50)
+  wordId    Int?
+  words     String? @db.VarChar(50)
+  studyDate Int?
+}
