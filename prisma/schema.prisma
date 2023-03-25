@@ -49,3 +49,19 @@ model MyWords {
   words     String? @db.VarChar(50)
   studyDate Int?
 }
+
+model Map {
+  placeId    Int        @id @default(autoincrement())
+  place      String     @db.VarChar(200)
+  pNum       String     @db.VarChar(20)
+  pSite      String     @db.VarChar(200)
+}
+
+model MyMap {
+  mPlaceId    Int         @id @default(autoincrement())
+  email       String?     @db.VarChar(50)
+  placeId     Int?
+  place       String      @db.VarChar(200)
+  pNum        String      @db.VarChar(20)
+  pSite       String      @db.VarChar(200)
+}

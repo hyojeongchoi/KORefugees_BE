@@ -70,7 +70,7 @@ router.post('/register',async function (req, res,next)  {
             }
         });
         if (emailCheck != null) { // 가입된 이메일일 경우에
-            return res.status(400).send({error: 'Already used email.'});
+            return res.status(400).send({error: 'Already used email.',success:""});
         }
 
         //비밀번호 암호화
@@ -87,13 +87,13 @@ router.post('/register',async function (req, res,next)  {
                 status: status,
                 nation: nation,
                 profileImagePath: profileImagePath,
-                talent: talent
             }
         })
         //클라이언트에게 JWT 토큰 전송
         return res.send({
             data:user,
-            "success": "user registered sucessfully"
+            success: "user registered sucessfully",
+            error:""
         })
     } catch(err) {
         console.error(err);
@@ -126,12 +126,14 @@ router.post('/login', async function(req, res, next)  {
             if(!passwordValid) { //비밀번호와도 일치하는지
                 res.send({
                     "code": 204,
-                    "success": "Email and password does not match"
+                    success: "Email and password does not match",
+                    error:""
                 })
             } else { //로그인 성공
                 responseContent = { 
                     "code": 200,
-                    "success": "login sucessfull",
+                    success: "login sucessfull",
+                    error:""
                 }
                 // access token과 refresh token을 발급
                 const payload = userCheck.email
@@ -170,7 +172,8 @@ router.post('/login', async function(req, res, next)  {
     catch { //where 이메일로 찾아오는데 오류나면 이메일이 없는 거임
         return res.send({
             "code":204,
-            "success": "Email does not exists"
+            success: "Email does not exists",
+            error:""
         })
     }           
 });
@@ -332,7 +335,7 @@ router.delete('/myWord',authJWT, async(req, res) => {
 
         //삭제할 단어 정보 -> WordId로 
         const wordId = req.body.wordId;
-        const word = await prisma.MyWords.findFirst({ // 단어 저장
+        const word = await prisma.MyWords.findFirst({ // 단어 찾기
             where: {wordId : wordId},
             select: { mWordId: true, words: true, email: true }
         });
@@ -406,16 +409,121 @@ router.get('/my',authJWT, async(req, res) =>{
 
 });
 
+//------------------------------------------
+
+//위치 API -> 전체 장소들 가져오기
+router.get('/place', async(req, res) => {
+    try {
+        const placeList = await prisma.Map.findMany({
+            select: {
+                placeId: true,
+                place: true, // 얘만 가져오면 됨
+                pNum: true,
+                pSite: true,
+            }
+        });
+        res.send(placeList)
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({error: 'Server Error.'});
+    }
+});
+
+//내 장소에 추가하기
+router.post('/myPlace',authJWT ,async(req, res) => {
+    try {
+        //JWT 토큰에서 사용자 정보 추출 
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded =  jwtUtil.verify(token); // Access Token의 검증
+        const email = decoded.email; // Access Token의 Payload에서 이메일 추출
+
+        //저장할 장소 정보
+        const placeId = req.body.placeId;
+        const place = await prisma.Map.findUnique({ // 장소 저장
+            where: {placeId : placeId},
+            select: { placeId: true, place: true, pNum:true, pSite: true }
+        });
+        const mPlace = await prisma.MyMap.create({
+            data: {
+                email: email,
+                placeId: place.placeId, 
+                place: place.place, 
+                pNum: place.pNum, 
+                pSite: place.pSite
+            },
+        });
+        res.send(mPlace)    
+    }
+    catch(err) {
+      console.error(err);
+      res.status(500).send({error: 'Server Error.'});
+    }
+});
+
+//나의 장소에서 삭제 API
+router.delete('/myPlace',authJWT, async(req, res) => {
+    try {
+        //JWT 토큰에서 사용자 정보 추출 
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded =  jwtUtil.verify(token); // Access Token의 검증
+        const email = decoded.email; // Access Token의 Payload에서 이메일 추출
+
+        //삭제할 장소 정보 -> placeId로 
+        const placeId = req.body.placeId;
+        const place = await prisma.MyMap.findFirst({ // 장소 찾기
+            where: {placeId : placeId},
+            select: { mPlaceId: true, email: true }
+        });
+
+        if (place.email == email){//사용자가 저장한 단어인지 확인
+            await prisma.MyMap.delete({
+                where: {
+                    mPlaceId: place.mPlaceId
+                },
+            });
+            res.send("삭제되었습니다");
+        }
+    }
+    catch(err) {
+      console.error(err);
+      res.status(500).send({error: 'Server Error.'});
+    }
+})
+
+
+//내장소 가져오기 API
+router.get('/myPlace',authJWT, async(req, res) => {
+    try {
+        //JWT 토큰에서 사용자 정보 추출 
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded =  jwtUtil.verify(token); // Access Token의 검증
+        const email = decoded.email; // Access Token의 Payload에서 이메일 추출
+
+        const pList = await prisma.MyMap.findMany({
+            where: {
+                email: email
+            }
+        });
+        res.send(pList);
+    }
+    catch(err) {
+      console.error(err);
+      res.status(500).send({error: 'Server Error.'});
+    }
+})
 
 //------------------------------------------
-// route to handle user registration
+// route to handle user registration 
 app.use('/register', router);
 app.use('/login', router);
 app.use('/api', router);
 app.use('/word', router);
-app.use('//mDate',router);
+app.use('/mDate',router);
 app.use('/myWord',router);
+app.use('/place',router);
+app.use('/myPlace',router);
 app.use('/refresh',router)
+
 //* access token을 재발급 하기 위한 router.
 
 
