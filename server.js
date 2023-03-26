@@ -81,7 +81,7 @@ router.post('/register',async function (req, res,next)  {
     const gender = req.body.gender
     const status =  req.body.status
     const nation = req.body.nation
-    const profileImagePath = req.image
+    const language = req.body.language
     
     try {
         //비밀번호 암호화
@@ -104,7 +104,7 @@ router.post('/register',async function (req, res,next)  {
                     gender: gender,
                     status: status,
                     nation: nation,
-                    profileImagePath: profileImagePath,
+                    language:language
                 }
             })
             await prisma.MyWords.create({
@@ -163,10 +163,10 @@ router.post('/login', async function(req, res, next)  {
                 // access token과 refresh token을 발급
                 const payload = userCheck.email
                 const accesstoken = jwtUtil.sign(payload); 
-                console.log(accesstoken)
-                console.log("-------------")
+                //console.log(accesstoken)
+                //console.log("-------------")
                 const refreshtoken = jwtUtil.refresh();
-                console.log(refreshtoken)
+                //console.log(refreshtoken)
                 /*
                 const Accesstoken = (jwt.sign({ payload }, process.env.ACCESS_TOKEN_SECRET, {
                     expiresIn: "15m"}));
@@ -196,10 +196,13 @@ router.post('/login', async function(req, res, next)  {
     }
     catch { //where 이메일로 찾아오는데 오류나면 이메일이 없는 거임
         return res.send({
+            token:{
+                accesstoken:"1",
+                refreshtoken:"1",
+            },
             "code":204,
             success: "Email does not exists",
             error:"",
-            token:""
         })
     }           
 });
@@ -423,22 +426,19 @@ router.get('/myWord',authJWT, async(req, res) => {
 // 마이페이지 -O
 router.get('/my',authJWT, async(req, res) =>{
     
-    const token = req.headers.authorization.split(' ')[1];
-    //console.log("server.my");
-    //console.log(token);
-
-    const decoded = jwtUtil.verify(token)
-    //console.log(decoded)
-
-    const email = decoded.email; // Access Token의 Payload에서 이메일 추출
-    //console.log(email)
+    //const token = req.headers.authorization.split(' ')[1];
+    //const decoded = jwtUtil.verify(token)
+    //const email = decoded.email; // Access Token의 Payload에서 이메일 추출
     try {
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded = jwtUtil.verify(token)
+        const email = decoded.email; 
         const user = await prisma.users.findUnique({where :{email:email}});
         console.log(user)
         res.send({success:"success",error:"",data: user});
 
     } catch (error) {
-        res.status(401).json({ success:"",error: 'Invalid Access Token',data:"" });
+        res.status(500).json({ success:"",error: 'Server Error',data:"{1}" });
     }
 
 });
