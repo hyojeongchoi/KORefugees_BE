@@ -10,7 +10,7 @@ const jwtUtil = require('./utils/Jwt')
 const authJWT = require('./middleware/authJWT');
 const refresh = require('./refresh');
 const jwt = require("jsonwebtoken");
-const myInfo = require('./utils/User')
+const UserEmailCheck = require('./utils/EmailCheck')
 
 app.use( bodyParser.urlencoded({ extended: true }) );
 app.use( bodyParser.json() );
@@ -50,22 +50,21 @@ router.get('/', function(req, res) {
 // 이메일 중복체크 api
 router.post('/emailCheck',async function (req, res,next)  {
     const email = req.body.email    
-    try {
-        //이메일 중복 체크
-        const emailCheck = await prisma.users.findUnique({ //이메일로 정보 불러옴
-            where: {
-                email: email,
-            }
-        });
-        if (emailCheck != null) { // 가입된 이메일일 경우에
-            return res.status(400).send({error: 'Already used email.',success:""});
-        }
-        else {
-            return res.status(200).send({error: '',success:"Can use this email."})
-        }
-    } catch(err) {
-        console.error(err);
-        return res.status(500).send({error: 'Server Error.', success:""});
+    const check = await UserEmailCheck.UserEmailCheck(email)
+    
+    console.log(check)
+    if(check)
+    {
+        return res.send({
+            success: "Can use this Email.",
+            error:""
+        })
+    }
+    else if(!check){
+        return res.send({
+            success: "",
+            error:"Already used Email."
+        })
     }
 });
 
@@ -87,31 +86,39 @@ router.post('/register',async function (req, res,next)  {
     try {
         //비밀번호 암호화
         const hPassword = await bcrypt.hash(password, 10)
-
-        //사용자 등록
-        user = await prisma.users.create({
-            data: {
-                email: email,
-                password: hPassword,
-                name: name,
-                birth: birth,
-                gender: gender,
-                status: status,
-                nation: nation,
-                profileImagePath: profileImagePath,
-            }
-        })
-        await prisma.MyWords.create({
-            data:{
-                email:email,
-                studyDate:1
-            }
-        })
-        //클라이언트에게 JWT 토큰 전송
-        return res.send({
-            success: "user registered sucessfully",
-            error:""
-        })
+        const check = await UserEmailCheck.UserEmailCheck(email)
+        if(!check) {
+            return res.send({
+                success: "",
+                error:"Already used Email."
+            })
+        }
+        else {
+            //사용자 등록
+            user = await prisma.users.create({
+                data: {
+                    email: email,
+                    password: hPassword,
+                    name: name,
+                    birth: birth,
+                    gender: gender,
+                    status: status,
+                    nation: nation,
+                    profileImagePath: profileImagePath,
+                }
+            })
+            await prisma.MyWords.create({
+                data:{
+                    email:email,
+                    studyDate:1
+                }
+            })
+            //클라이언트에게 JWT 토큰 전송
+            return res.send({
+                success: "user registered sucessfully",
+                error:""
+            })
+        }
     } catch(err) {
         console.error(err);
         return res.status(500).send({error: 'Server Error.', success:""});
