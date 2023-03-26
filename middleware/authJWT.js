@@ -1,5 +1,5 @@
 const { verify } = require('../utils/Jwt');
-const myInfo = require('../utils/User');
+const myInfo = require('../utils/EmailCheck');
 //유효성 검증?
 const authJWT = (req, res, next) => {
   if (req.headers.authorization) {
