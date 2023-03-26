@@ -47,7 +47,7 @@ model MyWords {
   email     String? @db.VarChar(50)
   wordId    Int?
   words     String? @db.VarChar(50)
-  studyDate Int?
+  studyDate Int?    @default(1)
 }
 
 model Map {
