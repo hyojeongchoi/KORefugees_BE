@@ -23,15 +23,14 @@ enum wordLevel {
 
 model Users {
   userId           Int       @id @default(autoincrement())
-  email            String    @unique @db.VarChar(50)
+  email            String    @unique @db.VarChar(100)
   password         String    @db.VarChar(200)
   name             String    @db.VarChar(50)
   birth            String    @db.VarChar(50)
-  gender           String    @db.VarChar(10)
-  status           String?   @db.VarChar(10)
-  nation           String?   @db.VarChar(20)
-  Language         String?   @db.VarChar(20)
-  profileImagePath String?   @db.VarChar(200)
+  gender           String    @db.VarChar(50)
+  status           String?   @db.VarChar(50)
+  nation           String?   @db.VarChar(50)
+  language         String?   @db.VarChar(50)
 }
 
 model Words {
