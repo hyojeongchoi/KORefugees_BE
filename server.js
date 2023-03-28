@@ -83,7 +83,7 @@ router.post('/register',async function (req, res,next)  {
     const nation = req.body.nation
     const language = req.body.language
     
-    try {
+    try { 
         //비밀번호 암호화
         const hPassword = await bcrypt.hash(password, 10)
         const check = await UserEmailCheck.UserEmailCheck(email)

@@ -32,7 +32,7 @@ const jwtUtil = {
       return {
         type: false,
         message: err.message,
-        message:"실패"
+        message:"jwt expired"
       };
     }
   },
