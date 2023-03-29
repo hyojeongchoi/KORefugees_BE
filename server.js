@@ -16,13 +16,6 @@ const jwt = require("jsonwebtoken");
 //이메일 체크
 const UserEmailCheck = require('./utils/EmailCheck')
 
-//GCS 
-const { Storage } = require('@google-cloud/storage');
-const storage = new Storage();
-const bucket = storage.bucket(process.env.GCP_STORAGE_BUCKET); // dotenv 필요
-
-const { v4: uuidv4 } = require('uuid');
-
 //파일 업로드
 const multer = require('./middleware/Multer');
 const { uploadImage, deleteFile } = require('./utils/Storage');
