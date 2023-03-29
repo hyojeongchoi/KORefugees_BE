@@ -3,14 +3,29 @@ var router = express.Router();
 var app = express();
 var bodyParser = require('body-parser');
 
+//회원가입,로그인
 var bcrypt = require('bcrypt');
 const redis = require('redis')
 const redisClient = require( "./Redis")
 const jwtUtil = require('./utils/Jwt')
 const authJWT = require('./middleware/authJWT');
 const refresh = require('./refresh');
+
 const jwt = require("jsonwebtoken");
+
+//이메일 체크
 const UserEmailCheck = require('./utils/EmailCheck')
+
+//GCS 
+const { Storage } = require('@google-cloud/storage');
+const storage = new Storage();
+const bucket = storage.bucket(process.env.GCP_STORAGE_BUCKET); // dotenv 필요
+
+const { v4: uuidv4 } = require('uuid');
+
+//파일 업로드
+const multer = require('./middleware/Multer');
+const { uploadImage, deleteFile } = require('./utils/Storage');
 
 app.use( bodyParser.urlencoded({ extended: true }) );
 app.use( bodyParser.json() );
@@ -221,7 +236,7 @@ router.get('/word', async(req, res) => {
     const level = req.query.level;
     const date = req.query.date;
     try {
-        if (date!=undefined) //일차 전체 단어 가져오기
+        if (date!=undefined & date != 0) //일차 전체 단어 가져오기
         {
             const wordList = await prisma.Words.findMany({
                 select: {
@@ -233,7 +248,7 @@ router.get('/word', async(req, res) => {
             });
             res.send({success:"success", error:"", data: wordList})
         }
-        else if(level!=undefined & type!=undefined){ // 단어 타입과 난이도를 입력했을 때
+        else if(date == 0 & level!=undefined & type!=undefined){ // 단어 타입과 난이도를 입력했을 때
             const wordList = await prisma.Words.findMany({
                 select: {
                     wordId: true,
@@ -249,7 +264,7 @@ router.get('/word', async(req, res) => {
             });
             res.send({success:"success", error:"", data: wordList})
         }
-        else { //전체 단어 불러오기(아무 값도 입력 x)
+        else{ //전체 단어 불러오기(아무 값도 입력 x)
             const wordList = await prisma.Words.findMany({
                 select: {
                     wordId: true,
@@ -386,7 +401,7 @@ router.delete('/myWord',authJWT, async(req, res) => {
                 });
                 res.send({success:"삭제되었습니다",error:""});
             }
-        }
+        } 
     }
     catch(err) {
       console.error(err);
@@ -552,7 +567,41 @@ router.get('/myPlace',authJWT, async(req, res) => {
     }
 })
 
+
+
+
 //------------------------------------------
+//이미지 gcp에 업로드 api
+router.post('/image', authJWT, multer.single('file'), uploadImage, async (req, res) => {
+    try {
+        const json = JSON.parse(req.body.json);
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded = jwtUtil.verify(token); // Access Token의 검증
+        const email = decoded.email; // Access Token의 Payload에서 이메일 추출
+
+        const image = req.image
+        //const imgName = json.imgName;
+        const imgName = req.imgName;
+        const transLan = json.transLan;
+        const fileExtension = req.fileExtension;
+        const imgUpload = await prisma.Image.create({
+            data:{
+                email:email,
+                imgName: imgName,
+                transLan: transLan,
+                imgPath: image,
+                fileExtension: fileExtension
+            }
+        })
+        res.send(imgUpload)
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({success:"",error: 'Server Error.'}); 
+    }
+});
+
+
+
 // route to handle user registration 
 app.use('/register', router);
 app.use('/login', router);
@@ -563,6 +612,7 @@ app.use('/myWord',router);
 app.use('/place',router);
 app.use('/myPlace',router);
 app.use('/refresh',router)
+app.use('/image',router)
 
 //* access token을 재발급 하기 위한 router.
 
