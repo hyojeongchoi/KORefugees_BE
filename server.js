@@ -17,8 +17,8 @@ const jwt = require("jsonwebtoken");
 const UserEmailCheck = require('./utils/EmailCheck')
 
 //파일 업로드
-const multer = require('./middleware/Multer');
-const { uploadImage, deleteFile } = require('./utils/Storage');
+//const multer = require('./middleware/Multer');
+//const { uploadImage, deleteFile } = require('./utils/Storage');
 
 app.use( bodyParser.urlencoded({ extended: true }) );
 app.use( bodyParser.json() );
@@ -562,7 +562,7 @@ router.get('/myPlace',authJWT, async(req, res) => {
 
 
 
-
+/*
 //------------------------------------------
 //이미지 gcp에 업로드 api
 router.post('/image', authJWT, multer.single('file'), uploadImage, async (req, res) => {
@@ -593,7 +593,7 @@ router.post('/image', authJWT, multer.single('file'), uploadImage, async (req, r
     }
 });
 
-
+*/
 
 // route to handle user registration 
 app.use('/register', router);
