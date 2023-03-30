@@ -30,6 +30,7 @@ dotenv.config();
 
 //prisma
 const { PrismaClient } = require('@prisma/client');
+const { EXPIRATION_TIME_OFFSET } = require("google-auth-library/build/src/auth/baseexternalclient");
 //const { Client } = require("socket.io/dist/client");
 const prisma = new PrismaClient();
 
@@ -214,6 +215,82 @@ router.post('/login', async function(req, res, next)  {
         })
     }           
 });
+//회원탈퇴 api
+//나의 장소에서 삭제 API
+router.delete('/my',authJWT, async(req, res) => {
+    try {
+        //JWT 토큰에서 사용자 정보 추출 
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded =  jwtUtil.verify(token); // Access Token의 검증
+        const email = decoded.email; // Access Token의 Payload에서 이메일 추출
+
+        const place = await prisma.MyMap.findFirst({where: {email : email}});
+        const word = await prisma.MyWords.findFirst({where: {email : email}});
+        const Image = await prisma.Image.findFirst({where: {email : email}});
+        if(place != null)
+        {
+            await prisma.MyMap.deleteMany({
+                where: {
+                    email: email,
+                }
+            });
+        }
+        if(word != null)
+        {
+            await prisma.MyWords.deleteMany({
+                where: {
+                    email: email,
+                }
+            });
+        }
+        if(Image != null)
+        {
+            await prisma.Image.deleteMany({
+                where: {
+                    email: email,
+                }
+            });
+        }
+        await prisma.Users.deleteMany({
+            where: {
+                email: email,
+            }
+        });
+        res.send({success:"삭제되었습니다",error:""});
+    }
+    catch(err) {
+      console.error(err);
+      res.status(500).send({success:"",error: 'Server Error.'});
+    }
+})
+
+//로그아웃 api
+router.post('/logout', authJWT, async (req, res) => {
+    
+    try {
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded =  jwtUtil.verify(token); 
+        const email = decoded.email; 
+
+        const check = await redisClient.exists(`${email}`);
+
+        if (check==1) //redis에 값이 존재하면
+        {
+            redisClient.del(`${email}`); //redis에 저장된 refreshToken 삭제 완료
+            //console.log(refreshToken)
+            //redisClient.set(token,"logout",'EXAT',decoded.exp);
+            //redisClient.expire(token,'EXAT',decoded.exp);
+            res.send({ message: 'Signed Out Successfully.' });
+        }
+        else if (check == 0){
+            res.send({ error: 'Email does not exists' });
+        }
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).send({ error: 'Server Error.' });
+    }
+  });
 
 /* access token을 재발급 하기 위한 router.
   클라이언트는 access token과 refresh token을 둘 다 헤더에 담아서 요청해야합니다. */
@@ -562,7 +639,7 @@ router.get('/myPlace',authJWT, async(req, res) => {
 
 
 
-/*
+
 //------------------------------------------
 //이미지 gcp에 업로드 api
 router.post('/image', authJWT, multer.single('file'), uploadImage, async (req, res) => {
@@ -593,7 +670,7 @@ router.post('/image', authJWT, multer.single('file'), uploadImage, async (req, r
     }
 });
 
-*/
+
 
 // route to handle user registration 
 app.use('/register', router);

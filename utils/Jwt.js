@@ -25,7 +25,8 @@ const jwtUtil = {
       return {
         type: true,
         email: decoded.email,
-        message:"전달 완료"
+        message:"전달 완료",
+        exp: decoded.exp
       };
     } catch (err) {
       //console.log("--------------------")
