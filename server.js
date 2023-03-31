@@ -313,6 +313,7 @@ router.get('/word', async(req, res) => {
                     wordId: true,
                     words: true, 
                     wordDate: true,
+                    wordP: true
                 },
                 where: {wordDate:{equals: parseInt(date)}}
             });
@@ -325,6 +326,7 @@ router.get('/word', async(req, res) => {
                     words: true, 
                     wordType: true,
                     wordLevel: true,
+                    wordP: true
                 },
                 where: {
                     AND:[
@@ -339,6 +341,7 @@ router.get('/word', async(req, res) => {
                 select: {
                     wordId: true,
                     words: true, // 얘만 가져오면 됨
+                    wordP: true
                 }
             });
             res.send({success:"success", error:"", data: wordList})

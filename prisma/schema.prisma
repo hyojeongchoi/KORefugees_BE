@@ -35,7 +35,8 @@ model Users {
 
 model Words {
   wordId    Int        @id @default(autoincrement())
-  words     String     @db.VarChar(50)
+  words     String     @db.VarChar(200)
+  wordP     String     @db.VarChar(200)
   wordType  wordType?
   wordLevel wordLevel?
   wordDate  Int?
