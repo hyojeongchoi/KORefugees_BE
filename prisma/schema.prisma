@@ -68,7 +68,6 @@ model MyMap {
 model Image {
   imgId       Int         @id @default(autoincrement())
   email       String?     @db.VarChar(200)
-  imgName     String?     @db.VarChar(200)
   transLan    String?     @db.VarChar(20)
   imgPath     String?     @db.VarChar(500)
   transPath   String?     @db.VarChar(500) 

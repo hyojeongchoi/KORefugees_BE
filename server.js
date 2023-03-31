@@ -17,8 +17,8 @@ const jwt = require("jsonwebtoken");
 const UserEmailCheck = require('./utils/EmailCheck')
 
 //파일 업로드
-//const multer = require('./middleware/Multer');
-//const { uploadImage, deleteFile } = require('./utils/Storage');
+const multer = require('./middleware/Multer');
+const { uploadImage, deleteFile } = require('./utils/Storage');
 
 app.use( bodyParser.urlencoded({ extended: true }) );
 app.use( bodyParser.json() );
@@ -644,20 +644,16 @@ router.get('/myPlace',authJWT, async(req, res) => {
 //이미지 gcp에 업로드 api
 router.post('/image', authJWT, multer.single('file'), uploadImage, async (req, res) => {
     try {
-        const json = JSON.parse(req.body.json);
         const token = req.headers.authorization.split(' ')[1];
         const decoded = jwtUtil.verify(token); // Access Token의 검증
         const email = decoded.email; // Access Token의 Payload에서 이메일 추출
-
+        
         const image = req.image
-        //const imgName = json.imgName;
-        const imgName = req.imgName;
-        const transLan = json.transLan;
+        const transLan = req.query.transLan;
         const fileExtension = req.fileExtension;
         const imgUpload = await prisma.Image.create({
             data:{
                 email:email,
-                imgName: imgName,
                 transLan: transLan,
                 imgPath: image,
                 fileExtension: fileExtension
